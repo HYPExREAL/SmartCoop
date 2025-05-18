@@ -9,6 +9,20 @@ interface SensorCardProps {
   unit?: string;
 }
 
+const formatValue = (value: number | boolean): string => {
+  if (typeof value === 'boolean') {
+    return value ? 'ON' : 'OFF';
+  }
+  
+  // Handle NaN, undefined, or null
+  if (value === undefined || value === null || isNaN(value)) {
+    return '-';
+  }
+  
+  // Format number to 1 decimal place if it's a float
+  return Number.isInteger(value) ? value.toString() : value.toFixed(1);
+};
+
 const getIcon = (type: string): IconType => {
   switch (type.toLowerCase()) {
     case 'temperature':
@@ -24,20 +38,6 @@ const getIcon = (type: string): IconType => {
     default:
       return FaTemperatureHigh;
   }
-};
-
-const formatValue = (value: number | boolean): string => {
-  if (typeof value === 'boolean') {
-    return value ? 'ON' : 'OFF';
-  }
-  
-  // Handle NaN, undefined, or null
-  if (value === undefined || value === null || isNaN(value)) {
-    return '-';
-  }
-  
-  // Format number to 1 decimal place if it's a float
-  return Number.isInteger(value) ? value.toString() : value.toFixed(1);
 };
 
 const SensorCard: FC<SensorCardProps> = ({ title, value, type, unit }) => {

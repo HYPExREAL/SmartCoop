@@ -5,14 +5,14 @@ import { ref, onValue } from 'firebase/database';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { db, auth } from '@/lib/firebase';
 import SensorCard from '@/components/SensorCard';
-import type { SensorData, SensorConfig } from '@/types/sensor';
+import type { SensorData } from '@/types/sensor';
 
-const sensorConfig: SensorConfig[] = [
-  { title: 'Temperature', key: 'Temperature', type: 'temperature', unit: '°C' },
-  { title: 'Humidity', key: 'Humidity', type: 'humidity', unit: '%' },
-  { title: 'Distance', key: 'Distance', type: 'distance', unit: 'cm' },
-  { title: 'Gas Level', key: 'Gas', type: 'gas', unit: 'ppm' },
-  { title: 'Fan Status', key: 'Fan', type: 'fan' },
+const sensorConfig = [
+  { title: 'Temperature', key: 'temperature' as keyof SensorData, type: 'temperature', unit: '°C' },
+  { title: 'Humidity', key: 'humidity' as keyof SensorData, type: 'humidity', unit: '%' },
+  { title: 'Distance', key: 'distance' as keyof SensorData, type: 'distance', unit: 'cm' },
+  { title: 'Gas Level', key: 'gas' as keyof SensorData, type: 'gas', unit: 'ppm' },
+  { title: 'Fan Status', key: 'fan' as keyof SensorData, type: 'fan' },
 ];
 
 export default function Home() {
@@ -22,38 +22,33 @@ export default function Home() {
   useEffect(() => {
     const connectToFirebase = async () => {
       try {
-        await signInWithEmailAndPassword(auth, 'antarixasoftware@gmail.com', 'AntariXa123');
+        await signInWithEmailAndPassword(auth, 'test@gmail.com', '123456');
         
         const scRef = ref(db, 'SC');
         
         onValue(scRef, (snapshot) => {
-          const data = snapshot.val();
-          console.log('Received Firebase data:', data);
+          const rawData = snapshot.val();
+          console.log('Raw Firebase data:', rawData);
 
-          // Check if data exists and has the expected structure
-          if (!data) {
+          if (!rawData) {
             console.error('No data received from Firebase');
             return;
           }
 
-          // Extract the latest reading (assuming data is nested under a timestamp)
-          const latestData = Object.values(data)[0] || data;
-          console.log('Latest sensor reading:', latestData);
-
           const formattedData: SensorData = {
-            Temperature: parseFloat(latestData.Temperature) || 0,
-            Humidity: parseFloat(latestData.Humidity) || 0,
-            Distance: parseFloat(latestData.Distance) || 0,
-            Gas: parseFloat(latestData.Gas) || 0,
-            Fan: Boolean(latestData.Fan),
+            temperature: Number(rawData.temperature) || 0,
+            humidity: Number(rawData.humidity) || 0,
+            distance: Number(rawData.distance) || 0,
+            gas: Number(rawData.gas) || 0,
+            fan: Boolean(Number(rawData.fan))
           };
 
           console.log('Formatted sensor data:', formattedData);
           setSensorData(formattedData);
         });
       } catch (error) {
-        console.error('Firebase error:', error);
-        setError('Connection error: ' + (error as Error).message);
+        console.error('Auth error:', error);
+        setError('Authentication error: ' + (error as Error).message);
       }
     };
 
@@ -64,9 +59,6 @@ export default function Home() {
       onValue(scRef, () => {});
     };
   }, []);
-
-  // Add logging for render phase
-  console.log('Current render state:', { sensorData, error });
 
   return (
     <main className="min-h-screen bg-gray-100 p-4">

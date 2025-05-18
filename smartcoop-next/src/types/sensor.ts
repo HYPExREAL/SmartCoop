@@ -1,14 +1,17 @@
 export interface SensorData {
-  Temperature: number;
-  Humidity: number;
-  Distance: number;
-  Gas: number;
-  Fan: boolean;
+  temperature: number;
+  humidity: number;
+  distance: number;
+  gas: number;
+  fan: boolean;
 }
 
-export interface SensorConfig {
-  title: string;
-  key: keyof SensorData;
-  type: string;
-  unit?: string;
+export interface FirebaseData {
+  [key: string]: {
+    temperature: string | number;
+    humidity: string | number;
+    distance: string | number;
+    gas: string | number;
+    fan: string | number | boolean;
+  }
 }
