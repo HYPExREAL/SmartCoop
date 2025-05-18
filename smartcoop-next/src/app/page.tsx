@@ -22,7 +22,7 @@ export default function Home() {
   useEffect(() => {
     const connectToFirebase = async () => {
       try {
-        await signInWithEmailAndPassword(auth, 'test@gmail.com', '123456');
+        await signInWithEmailAndPassword(auth, 'antarixasoftware@gmail.com', 'AntariXa123');
         
         const scRef = ref(db, 'SC');
         
