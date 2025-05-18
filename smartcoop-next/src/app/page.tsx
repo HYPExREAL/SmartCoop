@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ref, onValue } from 'firebase/database';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
 import { db, auth } from '@/lib/firebase';
 import SensorCard from '@/components/SensorCard';
 import type { SensorData } from '@/types/sensor';
@@ -20,43 +20,47 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const connectToFirebase = async () => {
-      try {
-        await signInWithEmailAndPassword(auth, 'antarixasoftware@gmail.com', 'AntariXa123');
-        
+    let unsubscribe: ReturnType<typeof onValue> | null = null;
+
+    const init = async () => {
+      // Cek apakah user sudah login
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          try {
+            await signInWithEmailAndPassword(auth, 'antarixasoftware@gmail.com', 'AntariXa123');
+            // Otomatis trigger ulang listener ketika login selesai
+          } catch (error) {
+            console.error('Firebase login error:', error);
+            setError('Login error: ' + (error as Error).message);
+          }
+          return;
+        }
+
+        // User sudah login, mulai baca data
         const scRef = ref(db, 'SC');
-        
-        onValue(scRef, (snapshot) => {
+        unsubscribe = onValue(scRef, (snapshot) => {
           const rawData = snapshot.val();
           console.log('Raw Firebase data:', rawData);
 
-          if (!rawData) {
-            console.error('No data received from Firebase');
-            return;
-          }
+          if (!rawData) return;
 
           const formattedData: SensorData = {
             temperature: Number(rawData.temperature) || 0,
             humidity: Number(rawData.humidity) || 0,
             distance: Number(rawData.distance) || 0,
             gas: Number(rawData.gas) || 0,
-            fan: Boolean(Number(rawData.fan))
+            fan: Boolean(Number(rawData.fan)),
           };
 
-          console.log('Formatted sensor data:', formattedData);
           setSensorData(formattedData);
         });
-      } catch (error) {
-        console.error('Auth error:', error);
-        setError('Authentication error: ' + (error as Error).message);
-      }
+      });
     };
 
-    connectToFirebase();
+    init();
 
     return () => {
-      const scRef = ref(db, 'SC');
-      onValue(scRef, () => {});
+      if (unsubscribe) unsubscribe(); // bersihkan listener
     };
   }, []);
 
