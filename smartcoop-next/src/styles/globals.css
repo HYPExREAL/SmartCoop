@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --primary-green: #0F766E;
+  --secondary-green: #14B8A6;
+  --accent-green: #2DD4BF;
+  --light-green: rgba(45, 212, 191, 0.1);
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500&display=swap');
+
+/* Base Font Classes */
+.font-heading {
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+.font-body {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+/* Apply base fonts */
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+}

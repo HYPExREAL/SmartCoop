@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartCoop - Realtime Monitoring</title>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js ";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-database.js ";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDmJTg3AQNUP9FKGfw5etQtp8ZiBiPEwnA",
+      authDomain: "smartcoop-6f3b1.firebaseapp.com",
+      databaseURL: "https://smartcoop-6f3b1-default-rtdb.asia-southeast1.firebasedatabase.app/ ",
+      projectId: "smartcoop-6f3b1",
+      storageBucket: "smartcoop-6f3b1.appspot.com",
+      messagingSenderId: "297121973941",
+      appId: "1:297121973941:web:aec24753a370daaf00a0fc"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const scRef = ref(db, 'SC');
+
+    const container = document.getElementById('data-container');
+
+    onValue(scRef, (snapshot) => {
+      const data = snapshot.val();
+      container.innerHTML = '';
+
+      if (data) {
+        Object.entries(data).forEach(([key, value]) => {
+          const div = document.createElement('div');
+          div.className = 'sensor-card';
+          div.innerHTML = `
+            <h3>${key}</h3>
+            <p class="value">${value}</p>
+          `;
+          container.appendChild(div);
+        });
+      } else {
+        container.innerHTML = '<p>No data found.</p>';
+      }
+    });
+  </script>
+
+  <!-- CSS Link -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>SmartCoop Dashboard</h1>
+    <p>Live monitoring of temperature, gas levels, and feeding system</p>
+  </header>
+
+  <main>
+    <section id="data-container" class="grid-container">
+      <p>Loading...</p>
+    </section>
+  </main>
+</body>
+</html>
