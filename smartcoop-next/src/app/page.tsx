@@ -1,80 +1,96 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
-import { ref, onValue } from "firebase/database";
-import { db } from "@/lib/firebase";
-import SensorCard from "@/components/SensorCard";
-
-interface SensorData {
-  Temperature: number;
-  Humidity: number;
-  Distance: number;
-  Gas: number;
-  Fan: boolean;
-}
-
-interface SensorConfig {
-  title: string;
-  key: keyof SensorData;
-  type: 'temperature' | 'humidity' | 'distance' | 'gas' | 'fan';
-  unit?: string;
-}
+import { useEffect, useState } from 'react';
+import { ref, onValue } from 'firebase/database';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { db, auth } from '@/lib/firebase';
+import SensorCard from '@/components/SensorCard';
+import type { SensorData, SensorConfig } from '@/types/sensor';
 
 const sensorConfig: SensorConfig[] = [
-  { title: "Temperature", key: "Temperature", type: "temperature", unit: "°C" },
-  { title: "Humidity", key: "Humidity", type: "humidity", unit: "%" },
-  { title: "Distance", key: "Distance", type: "distance", unit: "cm" },
-  { title: "Gas Level", key: "Gas", type: "gas", unit: "ppm" },
-  { title: "Fan Status", key: "Fan", type: "fan" }
+  { title: 'Temperature', key: 'Temperature', type: 'temperature', unit: '°C' },
+  { title: 'Humidity', key: 'Humidity', type: 'humidity', unit: '%' },
+  { title: 'Distance', key: 'Distance', type: 'distance', unit: 'cm' },
+  { title: 'Gas Level', key: 'Gas', type: 'gas', unit: 'ppm' },
+  { title: 'Fan Status', key: 'Fan', type: 'fan' },
 ];
 
 export default function Home() {
-  const [data, setData] = useState<SensorData | null>(null);
+  const [sensorData, setSensorData] = useState<SensorData | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const scRef = ref(db, "SC");
-    onValue(scRef, (snapshot) => {
-      const val = snapshot.val();
-      setData(val);
-    });
+    const connectToFirebase = async () => {
+      try {
+        await signInWithEmailAndPassword(auth, 'antarixasoftware@gmail.com', 'AntariXa123');
+        
+        const scRef = ref(db, 'SC');
+        
+        onValue(scRef, (snapshot) => {
+          const data = snapshot.val();
+          console.log('Received Firebase data:', data);
+
+          // Check if data exists and has the expected structure
+          if (!data) {
+            console.error('No data received from Firebase');
+            return;
+          }
+
+          // Extract the latest reading (assuming data is nested under a timestamp)
+          const latestData = Object.values(data)[0] || data;
+          console.log('Latest sensor reading:', latestData);
+
+          const formattedData: SensorData = {
+            Temperature: parseFloat(latestData.Temperature) || 0,
+            Humidity: parseFloat(latestData.Humidity) || 0,
+            Distance: parseFloat(latestData.Distance) || 0,
+            Gas: parseFloat(latestData.Gas) || 0,
+            Fan: Boolean(latestData.Fan),
+          };
+
+          console.log('Formatted sensor data:', formattedData);
+          setSensorData(formattedData);
+        });
+      } catch (error) {
+        console.error('Firebase error:', error);
+        setError('Connection error: ' + (error as Error).message);
+      }
+    };
+
+    connectToFirebase();
+
+    return () => {
+      const scRef = ref(db, 'SC');
+      onValue(scRef, () => {});
+    };
   }, []);
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-12">
-      <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow p-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="font-heading text-2xl md:text-3xl font-bold text-gray-800">
-              Live Monitoring
-            </h2>
-            <p className="font-body text-gray-500 mt-1">
-              Real-time sensor data
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" 
-               style={{ backgroundColor: 'var(--light-green)' }}>
-            <div className="h-2.5 w-2.5 rounded-full animate-pulse"
-                 style={{ backgroundColor: 'var(--primary-green)' }}/>
-            <span className="font-body text-sm" 
-                  style={{ color: 'var(--primary-green)' }}>
-              Live
-            </span>
-          </div>
-        </div>
+  // Add logging for render phase
+  console.log('Current render state:', { sensorData, error });
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {data && sensorConfig.map((sensor) => (
-            <SensorCard
-              key={sensor.key}
-              title={sensor.title}
-              value={data[sensor.key]}
-              unit={sensor.unit}
-              type={sensor.type}
-            />
-          ))}
-        </div>
+  return (
+    <main className="min-h-screen bg-gray-100 p-4">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">SmartCoop Dashboard</h1>
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+        {!sensorData ? (
+          <div className="text-center py-10">Loading sensor data...</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sensorConfig.map((sensor) => (
+              <SensorCard
+                key={sensor.key}
+                title={sensor.title}
+                value={sensorData[sensor.key]}
+                type={sensor.type}
+                unit={sensor.unit}
+              />
+            ))}
+          </div>
+        )}
       </div>
-    </div>
+    </main>
   );
 }
