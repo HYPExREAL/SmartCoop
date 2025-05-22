@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { IconType } from 'react-icons';
-import { FaTemperatureHigh, FaTint, FaRuler, FaWind, FaFan } from 'react-icons/fa';
+import { FaTemperatureHigh, FaTint, FaRuler, FaWind, FaFan, FaDrumstickBite } from 'react-icons/fa';
 
 interface SensorCardProps {
   title: string;
@@ -35,6 +35,8 @@ const getIcon = (type: string): IconType => {
       return FaWind;
     case 'fan':
       return FaFan;
+    case 'feed':
+      return FaDrumstickBite;
     default:
       return FaTemperatureHigh;
   }
