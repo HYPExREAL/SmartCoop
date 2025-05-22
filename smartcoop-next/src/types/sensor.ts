@@ -1,9 +1,11 @@
-export interface SensorData {
+export interface SensorData { 
   temperature: number;
   humidity: number;
   distance: number;
   gas: number;
   fan: boolean;
+  feedLevel: number;
+  fanDHT: boolean;
 }
 
 export interface FirebaseData {
@@ -13,5 +15,6 @@ export interface FirebaseData {
     distance: string | number;
     gas: string | number;
     fan: string | number | boolean;
+    feedLevel: string | number;
   }
 }

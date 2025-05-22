@@ -7,13 +7,19 @@ import { db, auth } from '@/lib/firebase';
 import SensorCard from '@/components/SensorCard';
 import type { SensorData } from '@/types/sensor';
 
-const sensorConfig = [
-  { title: 'Temperature', key: 'temperature' as keyof SensorData, type: 'temperature', unit: '°C' },
-  { title: 'Humidity', key: 'humidity' as keyof SensorData, type: 'humidity', unit: '%' },
-  { title: 'Distance', key: 'distance' as keyof SensorData, type: 'distance', unit: 'cm' },
-  { title: 'Gas Level', key: 'gas' as keyof SensorData, type: 'gas', unit: 'ppm' },
-  { title: 'Fan Status', key: 'fan' as keyof SensorData, type: 'fan' },
+const sensorConfig: {
+  title: string;
+  key: keyof SensorData;
+  type: string;
+  unit?: string;
+}[] = [
+  { title: 'Temperature', key: 'temperature', type: 'temperature', unit: '°C' },
+  { title: 'Gas Level', key: 'gas', type: 'gas', unit: 'ppm' },
+  { title: 'Fan Status', key: 'fan', type: 'fan' },
+  { title: 'Feed Level', key: 'feedLevel', type: 'feed', unit: '%' },
 ];
+
+
 
 export default function Home() {
   const [sensorData, setSensorData] = useState<SensorData | null>(null);
@@ -50,8 +56,9 @@ export default function Home() {
             distance: Number(rawData.distance) || 0,
             gas: Number(rawData.gas) || 0,
             fan: Boolean(Number(rawData.fan)),
+            feedLevel: Number(rawData.feedLevel) || 0,
+            fanDHT: Boolean(Number(rawData.fanDHT))
           };
-
           setSensorData(formattedData);
         });
       });
